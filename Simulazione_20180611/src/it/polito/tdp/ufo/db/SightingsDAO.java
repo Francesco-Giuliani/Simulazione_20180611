@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import it.polito.tdp.ufo.model.Sighting;
+import it.polito.tdp.ufo.model.StateBeforeState;
 import it.polito.tdp.ufo.model.YearAndCount;
 
 public class SightingsDAO {
@@ -100,6 +101,35 @@ public class SightingsDAO {
 		}
 	}
 
+	public List<StateBeforeState> getAlledges(Year anno){
+		String sql = "select s1.state st1, s2.state st2\r\n" + 
+				"from sighting s1, sighting s2\r\n" + 
+				"where YEAR(s1.datetime) = YEAR(s2.datetime) and YEAR(s1.datetime) = ?\r\n" + 
+				"and s1.country = 'us' and s2.country = 'us'\r\n" + 
+				"and s1.state is not null and s2.state is not null\r\n" + 
+				"and s1.state != s2.state\r\n" + 
+				"and s2.datetime>s1.datetime\r\n" + 
+				"group by st1, st2";
+		List<StateBeforeState> edges = new ArrayList<>();
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, anno.getValue());
+			ResultSet rs = st.executeQuery();
+			
+			while(rs.next()) {
+				StateBeforeState y = new StateBeforeState(rs.getString("st1"), rs.getString("st2"));
+				edges.add(y);
+			}
+			st.close();
+			conn.close();
+			return edges;
+		}catch(SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Errore DB");
+		}
+	}
+	
 	public boolean esisteAvvistamento(Year anno, String st1, String st2) {
 		String sql = "select count(*) as num\r\n" + 
 				"from sighting s1, sighting s2\r\n" + 
@@ -146,5 +176,6 @@ group by st1, st2
 			throw new RuntimeException("Errore DB");
 		}
 	}
+
 	
 }

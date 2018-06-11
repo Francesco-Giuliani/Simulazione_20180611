@@ -19,7 +19,7 @@ public class YearAndCount {
 	}
 	@Override
 	public String toString() {
-		return anno + "  " + numAvvistamenti + "]";
+		return anno + " [" + numAvvistamenti + "]";
 	}
 	@Override
 	public int hashCode() {

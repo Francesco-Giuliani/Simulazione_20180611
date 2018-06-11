@@ -15,8 +15,9 @@ public class Model {
 	
 	private List<YearAndCount> anniAvvistamenti;
 	private SightingsDAO sdao;
-	private Graph<String, DefaultEdge> grafo; 
+	private Graph<String, StateBeforeState> grafo; 
 	private List<String> stati;
+	private List<StateBeforeState> edges;
 	
 	public Model() {
 		this.sdao = new SightingsDAO();
@@ -24,25 +25,29 @@ public class Model {
 	}
 	
 	public void creaGrafo(Year anno) {
-		this.grafo = new SimpleDirectedGraph<>(DefaultEdge.class);
+		this.grafo = new SimpleDirectedGraph<>(StateBeforeState.class);
 		
 		Graphs.addAllVertices(this.grafo, sdao.getStati(anno));
 		System.out.println(this.grafo.vertexSet().size());
 		this.stati = new ArrayList<>(grafo.vertexSet());
-		//EDGES
-		//METODO LENTO CON DOPPIO CICLO MIGLIORABILE CON s1<s2 (CICLO TRIANGOLARE) O 
-		//con QUERY CHE PRENDA DIRETTAMENTE TUTTI GLI EDGE (v. classe sightings commento 
-		//in metodo esisteAvvistamento(anno, s1, s2) 
 		
-		for(int i =0; i<this.stati.size(); i++)
-			for(int j=i+1; j<this.stati.size(); j++) {
-				String st1 = stati.get(i), st2 = stati.get(j);
-				if(!st1.equals(st2)) {
-					if(sdao.esisteAvvistamento(anno, st1, st2))
-						this.grafo.addEdge(st1, st2);
-				}
-			}
+		long start = System.nanoTime();
+		edges = sdao.getAlledges(anno);
+		long end = System.nanoTime();
+		double runTime = ((double)(end-start))/Math.pow(10, 9);
+		System.out.println("Completion time of getAlledges(): "+runTime+" secondi");
+		
+		start = System.nanoTime();
+		for(StateBeforeState sbs: edges) {
+			StateBeforeState e = this.grafo.addEdge(sbs.getFirstState(), sbs.getSecondState());
+			e.setFirstState(sbs.getFirstState());
+			e.setSecondState(sbs.getSecondState());
+		}
+		end = System.nanoTime();
+		runTime = ((double)(end-start))/Math.pow(10, 9);
+		System.out.println("Completion time to add all edges: "+runTime+" secondi");
 		System.out.println(this.grafo.edgeSet().size());
+		
 	}
 	
 	
@@ -53,5 +58,14 @@ public class Model {
 			return this.anniAvvistamenti;
 	}
 
+	public List<String> getStati() {
+		return stati;
+	}
+
+	public List<StateBeforeState> getEdges() {
+		return edges;
+	}
+	
+	
 
 }

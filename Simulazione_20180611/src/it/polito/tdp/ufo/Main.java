@@ -13,9 +13,9 @@ public class Main extends Application {
 	public void start(Stage primaryStage) {
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("Ufo.fxml"));
-			UfoController controller = (UfoController)loader.getController();
 			BorderPane root = (BorderPane)loader.load();
 			
+			UfoController controller = (UfoController)loader.getController();
 			Model model = new Model();
 			controller.setModel(model);
 			
