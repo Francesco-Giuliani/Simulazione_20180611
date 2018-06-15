@@ -5,6 +5,7 @@
 package it.polito.tdp.ufo;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.ufo.model.Model;
@@ -29,7 +30,7 @@ public class UfoController {
     private ComboBox<YearAndCount> boxAnno; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxStato"
-    private ComboBox<?> boxStato; // Value injected by FXMLLoader
+    private ComboBox<String> boxStato; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
@@ -40,6 +41,30 @@ public class UfoController {
     @FXML
     void handleAnalizza(ActionEvent event) {
 
+    	this.txtResult.clear();
+    	if(model.getStati() == null || this.model.getStati().isEmpty()) {
+    		this.txtResult.setText("Nessun grafo creato. Creare prima un grafo:\n "
+    				+ "selezionare un anno dal box e premere il pulsante avvistamenti.\n");
+    		return;
+    	}
+    	
+    	String state = this.boxStato.getValue();
+    	if(state==null) {
+    		this.txtResult.setText("Nessuno stato selezionato. Selezionare uno stato dal box.\n"
+    				+ "Se nessuno stato è presente selezionare prima un anno e creare il grafo.\n");
+    		return;
+    	}
+    	List<String> adiacenti = this.model.getStatiAdiacenti(state);
+    	List<String> raggiungibili = this.model.getStatiRaggiungibili(state);
+    	this.txtResult.appendText("Stati adiacenti a "+ state+":\n");
+    	for(String s: adiacenti) {
+    		this.txtResult.appendText(s+"\n");
+    	}
+    	this.txtResult.appendText("Stati raddiungibili da "+ state+":\n");
+    	for(String s: raggiungibili) {
+    		this.txtResult.appendText(s+"\n");
+    	}
+    	
     }
 
     @FXML
@@ -53,11 +78,30 @@ public class UfoController {
     	this.model.creaGrafo(year.getAnno());
     	this.txtResult.appendText("Grafo ultimato: è possibile eseguire le operazioni successive.\n");
     	this.txtResult.appendText(String.format("Il grafo ha: %d nodi e %d archi.\n", model.getStati().size(), model.getEdges().size()));
+    	this.boxStato.getItems().setAll(model.getStati());
     }
 
     @FXML
     void handleSequenza(ActionEvent event) {
-
+    	
+    	this.txtResult.clear();
+    	if(model.getStati() == null || this.model.getStati().isEmpty()) {
+    		this.txtResult.setText("Nessun grafo creato. Creare prima un grafo:\n "
+    				+ "selezionare un anno dal box e premere il pulsante avvistamenti.\n");
+    		return;
+    	}
+    	
+    	String state = this.boxStato.getValue();
+    	if(state==null) {
+    		this.txtResult.setText("Nessuno stato selezionato. Selezionare uno stato dal box.\n"
+    				+ "Se nessuno stato è presente selezionare prima un anno e creare il grafo.\n");
+    		return;
+    	}
+    	List<String> percorso = model.trovaSequenzaStatiPiuLungaDa(state);
+    	this.txtResult.appendText("Percorso più lungo da "+ state+":\n");
+    	for(String s: percorso) {
+    		this.txtResult.appendText(s+"\n");
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
